@@ -10,7 +10,7 @@ RUN echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup
 RUN echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache
 
 # Update and install system base packages
-ENV IMAGE_PRODUCTION_APT_GET_DATE 2015-01-07-22-44
+ENV IMAGE_PRODUCTION_APT_GET_DATE 2019-01-07-22-44
 RUN apt-get update && \
     apt-get install -y \
         git \
@@ -18,15 +18,21 @@ RUN apt-get update && \
         curl \
         nginx \
         mysql-client \
-        php5-fpm \
-        php5-curl \
-        php5-cli \
-        php5-gd \
-        php5-intl \
-        php5-mcrypt \
-        php5-mysql \
-        php5-pgsql \
-        php5-xsl && \
+        php71-fpm \
+        php71-curl \
+        php71-cli \
+        php71-gd \
+        php71-intl \
+        php71-mcrypt \
+        php71-mysql \
+        php71-mysqlnd \
+        php71-mypecl-apcu \
+        php71-opcache \
+        php71-gd \
+        php71-imap \
+        php71-mbstring \
+        php71-pgsql \
+        php71-xsl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -49,17 +55,17 @@ RUN /usr/local/bin/composer create-project --prefer-dist \
 # Configure nginx
 ADD default /etc/nginx/sites-available/default
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf && \
-    echo "cgi.fix_pathinfo = 0;" >> /etc/php5/fpm/php.ini && \
-    sed -i.bak 's/variables_order = "GPCS"/variables_order = "EGPCS"/' /etc/php5/fpm/php.ini && \
-    sed -i.bak '/;catch_workers_output = yes/ccatch_workers_output = yes' /etc/php5/fpm/pool.d/www.conf && \
-    sed -i.bak 's/log_errors_max_len = 1024/log_errors_max_len = 65536/' /etc/php5/fpm/php.ini
+    echo "cgi.fix_pathinfo = 0;" >> /etc/php71/fpm/php.ini && \
+    sed -i.bak 's/variables_order = "GPCS"/variables_order = "EGPCS"/' /etc/php71/fpm/php.ini && \
+    sed -i.bak '/;catch_workers_output = yes/ccatch_workers_output = yes' /etc/php71/fpm/pool.d/www.conf && \
+    sed -i.bak 's/log_errors_max_len = 1024/log_errors_max_len = 65536/' /etc/php71/fpm/php.ini
 # forward request and error logs to docker log collector
 RUN ln -sf /dev/stderr /var/log/nginx/error.log
 # /!\ DEVELOPMENT ONLY SETTINGS /!\
 # Running PHP-FPM as root, required for volumes mounted from host
-RUN sed -i.bak 's/user = www-data/user = root/' /etc/php5/fpm/pool.d/www.conf && \
-    sed -i.bak 's/group = www-data/group = root/' /etc/php5/fpm/pool.d/www.conf && \
-    sed -i.bak 's/--fpm-config /-R --fpm-config /' /etc/init.d/php5-fpm
+RUN sed -i.bak 's/user = www-data/user = root/' /etc/php71/fpm/pool.d/www.conf && \
+    sed -i.bak 's/group = www-data/group = root/' /etc/php71/fpm/pool.d/www.conf && \
+    sed -i.bak 's/--fpm-config /-R --fpm-config /' /etc/init.d/php71-fpm
 # /!\ DEVELOPMENT ONLY SETTINGS /!\
 
 ADD run.sh /root/run.sh
